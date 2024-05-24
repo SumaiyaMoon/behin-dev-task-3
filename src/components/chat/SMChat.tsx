@@ -12,22 +12,115 @@ import {
   Videocam,
 } from "@mui/icons-material";
 import EmojiPicker from "emoji-picker-react";
+import {
+  arrayUnion,
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../../config/firebaseConfig";
+import { useChatStore } from "../../config/zustand/chatStore";
+import { useUserStore } from "../../config/zustand/userStore";
+import upload from "../../config/upload";
 
 export default function SMChat() {
+  const [chat, setChat] = useState<any>();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  const [img, setImg] = useState({
+    file: null,
+    url: "",
+  });
+  const { chatId, user }: any = useChatStore();
+  const { currentUser }: any = useUserStore();
 
   const handleEmoji = (e: any) => {
     setText((prev) => prev + e.emoji);
+    setOpen(false);
   };
 
-  console.log(text);
+  const handleImg = (e: any) => {
+    if (e.target.files[0]) {
+      setImg({
+        file: e.target.files[0],
+        url: URL.createObjectURL(e.target.files[0]),
+      });
+    }
+  };
+
+  // console.log(text);
+
+  const handleSend = async () => {
+    if (text === "") return;
+
+    let imgUrl = null;
+
+    try {
+      if (img.file) {
+        imgUrl = await upload(img.file);
+      }
+
+      await updateDoc(doc(db, "chats", chatId), {
+        messages: arrayUnion({
+          senderId: currentUser.id,
+          text,
+          createdAt: new Date(),
+          ...(imgUrl ? { img: imgUrl } : {}),
+        }),
+      });
+
+      const userIDs = [currentUser.id, user.id];
+
+      userIDs.forEach(async (id: any) => {
+        const userChatsRef: any = doc(db, "userchats", id);
+        const userChatsSnapshot: any = await getDoc(userChatsRef);
+
+        if (userChatsSnapshot.exists()) {
+          const userChatsData = userChatsSnapshot.data();
+
+          const chatIndex = userChatsData.chats.findIndex(
+            (chat: any) => chat.chatId === chatId
+          );
+
+          userChatsData.chats[chatIndex].lastMessage = text;
+          userChatsData.chats[chatIndex].isSeen =
+            id === currentUser.id ? true : false;
+          userChatsData.chats[chatIndex].isUpdatedAt = Date.now();
+
+          await updateDoc(userChatsRef, {
+            chats: userChatsData.chats,
+          });
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    setImg({
+      file: null,
+      url: "",
+    });
+    setText("");
+  };
 
   const endRef = useRef<any>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  useEffect(() => {
+    const unSub = onSnapshot(doc(db, "chats", chatId), (res: any) => {
+      setChat(res.data());
+    });
+
+    return () => {
+      unSub();
+    };
+  }, [chatId]);
+
+  // console.log(chat);
 
   return (
     <div className="chat">
@@ -47,51 +140,42 @@ export default function SMChat() {
       </div>
 
       <div className="center">
-        <div className="message">
-          <img src={Avatar} alt="" />
-          <div className="texts">
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Reprehenderit, vero?
-            </p>
-            <span>1 min ago</span>
+        {chat &&
+          chat.messages.map((message: any) => (
+            <div
+              className={`message ${
+                message.senderId === currentUser.id ? "own" : ""
+              }`}
+              key={message.createdAt}
+            >
+              <div className="texts">
+                {message.img ? <img src={message.img} alt="" /> : null}
+                <p>{message.text}</p>
+                {/* <span>{message.createdAt}</span> */}
+              </div>
+            </div>
+          ))}
+        {img.url && (
+          <div className="message own">
+            <div className="texts">
+              <img src={img.url} alt="" />
+            </div>
           </div>
-        </div>
-        <div className="message own">
-          <div className="texts">
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Reprehenderit, vero?
-            </p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message">
-          <img src={Avatar} alt="" />
-          <div className="texts">
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Reprehenderit, vero?
-            </p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message own">
-          <div className="texts">
-            <img src={TableImage} alt="" />
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Reprehenderit, vero?
-            </p>
-            <span>1 min ago</span>
-          </div>
-        </div>
+        )}
         <div ref={endRef}></div>
       </div>
 
       <div className="bottom">
         <div className="icons">
-          <Image className="icon-img" />
+          <label htmlFor="file">
+            <Image className="icon-img" />
+          </label>
+          <input
+            type="file"
+            id="file"
+            style={{ display: "none" }}
+            onChange={handleImg}
+          />
           <PhotoCamera className="icon-img" />
           <Mic className="icon-img" />
         </div>
@@ -112,7 +196,9 @@ export default function SMChat() {
             <EmojiPicker open={open} onEmojiClick={handleEmoji} />
           </div>
         </div>
-        <button className="sendBtn">Send</button>
+        <button className="sendBtn" onClick={handleSend}>
+          Send
+        </button>
       </div>
     </div>
   );

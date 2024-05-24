@@ -2,7 +2,7 @@ import React from "react";
 import "./userInfo.css";
 import { Edit, MoreHoriz, Videocam } from "@mui/icons-material";
 import avatar from "../../../assets/avatar.png";
-import { useUserStore } from "../../../config/userStore";
+import { useUserStore } from "../../../config/zustand/userStore";
 export default function SMUserInfo() {
   const { currentUser }: any = useUserStore();
 

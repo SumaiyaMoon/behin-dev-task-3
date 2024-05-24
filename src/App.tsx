@@ -7,10 +7,12 @@ import SMLogin from "./components/login/SMLogin";
 import SMNotification from "./components/UIComponents/SMNotification";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./config/firebaseConfig";
-import { useUserStore } from "./config/userStore";
+import { useUserStore } from "./config/zustand/userStore";
 import Loader from "./assets/loader.gif";
+import { useChatStore } from "./config/zustand/chatStore";
 function App() {
   const { currentUser, isLoading, fetchUserInfo }: any = useUserStore();
+  const { chatId }: any = useChatStore();
 
   useEffect(() => {
     const unSub = onAuthStateChanged(auth, (user: any) => {
@@ -30,8 +32,8 @@ function App() {
       {currentUser ? (
         <>
           <SMList />
-          <SMChat />
-          <SMDetail />
+          {chatId && <SMChat />}
+          {chatId && <SMDetail />}
         </>
       ) : (
         <SMLogin />
