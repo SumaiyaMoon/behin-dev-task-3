@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./chat.css";
 import Avatar from "../../assets/avatar.png";
-import TableImage from "../../assets/TableImage.jpg";
 import {
   EmojiEmotions,
   Image,

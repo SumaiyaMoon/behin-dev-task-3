@@ -1,9 +1,4 @@
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "./firebaseConfig";
 export default function upload(file: any) {
   const date = new Date();

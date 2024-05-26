@@ -15,7 +15,7 @@ export default function SMChatList() {
   const [input, setInput] = useState("");
 
   const { currentUser }: any = useUserStore();
-  const { chatId, changeChat }: any = useChatStore();
+  const { changeChat }: any = useChatStore();
 
   useEffect(() => {
     if (!currentUser?.id) {

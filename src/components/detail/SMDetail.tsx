@@ -15,13 +15,8 @@ import { useChatStore } from "../../config/zustand/chatStore";
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 
 export default function SMDetail() {
-  const {
-    chatId,
-    user,
-    isCurrentUserBlocked,
-    isReceiverBlocked,
-    changeBlock,
-  }: any = useChatStore();
+  const { user, isCurrentUserBlocked, isReceiverBlocked, changeBlock }: any =
+    useChatStore();
   const { currentUser }: any = useUserStore();
 
   const handleBlock = async () => {
