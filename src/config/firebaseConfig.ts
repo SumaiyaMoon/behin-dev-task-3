@@ -8,12 +8,12 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_APP_ID,
+  apiKey: "AIzaSyB67jhMdlGji79OauOKhBzmeLG2Gk_BuE4",
+  authDomain: "moon-chat-app-bdt3.firebaseapp.com",
+  projectId: "moon-chat-app-bdt3",
+  storageBucket: "moon-chat-app-bdt3.appspot.com",
+  messagingSenderId: "865999702768",
+  appId: "1:865999702768:web:9432c479c69a61d3195035",
 };
 
 // Initialize Firebase
