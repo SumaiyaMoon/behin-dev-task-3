@@ -32,7 +32,8 @@ export default function SMChat() {
     file: null,
     url: "",
   });
-  const { chatId, user }: any = useChatStore();
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked }: any =
+    useChatStore();
   const { currentUser }: any = useUserStore();
 
   const handleEmoji = (e: any) => {
@@ -120,15 +121,19 @@ export default function SMChat() {
     };
   }, [chatId]);
 
-  // console.log(chat);
+  // console.log(user);
 
   return (
     <div className="chat">
       <div className="top">
         <div className="user">
-          <img src={Avatar} alt="" />
+          <img src={user?.avatar || Avatar} alt="" />
           <div className="texts">
-            <span>Jane Doe</span>
+            <span>
+              {isCurrentUserBlocked || isReceiverBlocked
+                ? "N/A"
+                : user?.username}
+            </span>
             <p>Lorem ipsum dolor sit amet.</p>
           </div>
         </div>
@@ -182,11 +187,16 @@ export default function SMChat() {
 
         <input
           type="text"
-          placeholder="Type a message..."
+          placeholder={
+            isCurrentUserBlocked || isReceiverBlocked
+              ? "You cannot send a message.."
+              : "Type a message..."
+          }
           value={text}
           onChange={(e: any) => {
             setText(e.target.value);
           }}
+          disabled={isCurrentUserBlocked || isReceiverBlocked}
         />
         <div className="emoji">
           {/* Emoji Icon */}
@@ -196,7 +206,11 @@ export default function SMChat() {
             <EmojiPicker open={open} onEmojiClick={handleEmoji} />
           </div>
         </div>
-        <button className="sendBtn" onClick={handleSend}>
+        <button
+          className="sendBtn"
+          onClick={handleSend}
+          disabled={isCurrentUserBlocked || isReceiverBlocked}
+        >
           Send
         </button>
       </div>

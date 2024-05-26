@@ -9,7 +9,7 @@ interface ChatState {
   isCurrentUserBlocked: boolean;
   isReceiverBlocked: boolean;
   changeChat: (chatId: string, user: User) => void;
-  changeBlock: () => void;
+  changeBlock: (userId: string) => void;
 }
 
 // Create the chat store
@@ -53,7 +53,26 @@ export const useChatStore = create<ChatState>((set) => ({
       isReceiverBlocked: false,
     });
   },
-  changeBlock: () => {
-    set((state) => ({ ...state, isReceiverBlocked: !state.isReceiverBlocked }));
+  changeBlock: (userId) => {
+    set((state) => {
+      const { currentUser } = useUserStore.getState();
+      if (!currentUser) {
+        return state;
+      }
+
+      const isCurrentlyBlocked = currentUser.blocked.includes(userId);
+      const updatedBlocked = isCurrentlyBlocked
+        ? currentUser.blocked.filter((id) => id !== userId)
+        : [...currentUser.blocked, userId];
+
+      useUserStore.setState({
+        currentUser: { ...currentUser, blocked: updatedBlocked },
+      });
+
+      return {
+        ...state,
+        isReceiverBlocked: !isCurrentlyBlocked,
+      };
+    });
   },
 }));

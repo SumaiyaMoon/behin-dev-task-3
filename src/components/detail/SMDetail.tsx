@@ -9,14 +9,51 @@ import {
   Help,
   Settings,
 } from "@mui/icons-material";
-import { auth } from "../../config/firebaseConfig";
+import { auth, db } from "../../config/firebaseConfig";
+import { useUserStore } from "../../config/zustand/userStore";
+import { useChatStore } from "../../config/zustand/chatStore";
+import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 
 export default function SMDetail() {
+  const {
+    chatId,
+    user,
+    isCurrentUserBlocked,
+    isReceiverBlocked,
+    changeBlock,
+  }: any = useChatStore();
+  const { currentUser }: any = useUserStore();
+
+  const handleBlock = async () => {
+    if (!user || !currentUser) return;
+
+    const currentUserDocRef: any = doc(db, "users", currentUser.id);
+    const userDocRef: any = doc(db, "users", user.id);
+
+    try {
+      // Update block status for the current user
+      await updateDoc(currentUserDocRef, {
+        blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
+      });
+
+      // Update block status for the receiver user
+      await updateDoc(userDocRef, {
+        blocked: isReceiverBlocked
+          ? arrayRemove(currentUser.id)
+          : arrayUnion(currentUser.id),
+      });
+
+      changeBlock(user.id);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="detail">
       <div className="user">
-        <img src={Avatar} alt="" />
-        <h2>Jane Doe</h2>
+        <img src={user?.avatar || Avatar} alt="" />
+        <h2>{user?.username || "unknown"}</h2>
         <p>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum, hic!
         </p>
@@ -66,7 +103,13 @@ export default function SMDetail() {
             <ArrowUpward className="icons-img" />
           </div>
         </div>
-        <button>Block User</button>
+        <button onClick={handleBlock}>
+          {isCurrentUserBlocked
+            ? "You are blocked"
+            : isReceiverBlocked
+            ? "User blocked"
+            : "Block User"}
+        </button>
         <button className="logout" onClick={() => auth.signOut()}>
           Logout
         </button>

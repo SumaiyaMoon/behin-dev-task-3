@@ -12,6 +12,8 @@ import { useChatStore } from "../../../config/zustand/chatStore";
 export default function SMChatList() {
   const [chats, setChats] = useState<any>([]);
   const [addMode, setAddMode] = useState(false);
+  const [input, setInput] = useState("");
+
   const { currentUser }: any = useUserStore();
   const { chatId, changeChat }: any = useChatStore();
 
@@ -83,12 +85,20 @@ export default function SMChatList() {
     }
   };
 
+  const filteredChats = chats.filter((c: any) =>
+    c.user.username.toLowerCase().includes(input.toLowerCase())
+  );
+
   return (
     <div className="chatList">
       <div className="search">
         <div className="searchBar">
           <Search className="search-icon" />
-          <input type="text" placeholder="Search" />
+          <input
+            type="text"
+            placeholder="Search"
+            onChange={(e: any) => setInput(e.target.value)}
+          />
         </div>
 
         <SMIconButton
@@ -103,7 +113,7 @@ export default function SMChatList() {
           onClick={() => setAddMode((prev) => !prev)}
         />
       </div>
-      {chats.map((chat: any) => (
+      {filteredChats.map((chat: any) => (
         <div
           className="item"
           key={chat.chatId}
@@ -112,9 +122,20 @@ export default function SMChatList() {
             backgroundColor: chat?.isSeen ? "transparent" : "#57C0D9",
           }}
         >
-          <img src={chat.user?.avatar || Avatar} alt="" />
+          <img
+            src={
+              chat.user.blocked.includes(currentUser.id)
+                ? Avatar
+                : chat.user.avatar || Avatar
+            }
+            alt=""
+          />
           <div className="texts">
-            <span>{chat.user?.username || "Unknown"}</span>
+            <span>
+              {chat.user.blocked.includes(currentUser.id)
+                ? "User"
+                : chat.user.username || "Anonymous"}
+            </span>
             <p>{chat.lastMessage}</p>
           </div>
         </div>
